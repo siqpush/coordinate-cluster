@@ -107,8 +107,9 @@ where
         c
     }
 
-    pub fn calc(k: usize, r: usize, values: &[Val<T>]) -> (T, Vec<(T, T)>) {
+    pub fn calc(k: usize, r: usize, values: &[Val<T>]) -> HashMap<i32, (T, T)> {
         let mut centroids = None;
+        let mut res = HashMap::new();
         for i in 0..r {
             let mut cluster = Self::new(k, values, &centroids);
             // Clear the centroids since we already defined them and we dont want the next round to push onto the existing centroids
@@ -117,7 +118,6 @@ where
             } else {
                 centroids = Some(vec![]);
             }
-            let mut total_distance = T::default();
             for (_, node) in cluster.nodes.iter_mut() {
                 for report in node.children.iter() {
                     node.total_distance += T::haversine_miles(
@@ -125,14 +125,18 @@ where
                         &(report.latitude, report.longitude),
                     );
                 }
-                total_distance += node.total_distance;
                 if let Some(ref mut centroids) = centroids {
                     let centroid = node.calculate_new_centroid();
                     centroids.push(centroid);
                 }
             }
             if i.eq(&(r - 1)) {
-                return (total_distance, centroids.unwrap());
+                for node in cluster.nodes.into_iter() {
+                    for child in node.1.children.into_iter() {
+                        res.insert(child.id, (node.1.location.latitude, node.1.location.longitude));
+                    }
+                }
+                return res;
             }
         }
         unreachable!("Failed to calculate centroids")

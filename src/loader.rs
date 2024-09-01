@@ -9,11 +9,11 @@ impl<T> Val<T>
 where
     T: Copy + std::fmt::Debug,
 {
-    pub fn new(lat: T, lon: T) -> Self {
+    pub fn new(lat: T, lon: T, id: i32) -> Self {
         Self {
             latitude: lat,
             longitude: lon,
-            id: 0,
+            id,
         }
     }
 }

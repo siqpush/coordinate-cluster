@@ -48,24 +48,45 @@ mod tests {
     fn test_calc_kmeans() {
         let values: Vec<Val<f64>> = vec![
             // Cluster 1
-            Val::new(30.0, -90.0),
-            Val::new(20.0, -60.0),
-            Val::new(25.0, -75.0),
+            Val::new(30.0, -90.0,1),
+            Val::new(20.0, -60.0,2),
+            Val::new(25.0, -75.0, 3),
             // Cluster 2
-            Val::new(40.0, 90.0),
-            Val::new(50.0, 60.0),
-            Val::new(45.0, 75.0),
+            Val::new(40.0, 90.0, 4),
+            Val::new(50.0, 60.0, 5),
+            Val::new(45.0, 75.0, 6),
             // Cluster 3
-            Val::new(-30.0, 45.0),
-            Val::new(-35.0, 40.0),
-            Val::new(-32.5, 42.5),
+            Val::new(-30.0, 45.0, 7),
+            Val::new(-35.0, 40.0, 8),
+            Val::new(-32.5, 42.5, 9),
             // Cluster 4
-            Val::new(60.0, -120.0),
-            Val::new(65.0, -125.0),
-            Val::new(62.5, -122.5),
+            Val::new(60.0, -120.0, 10),
+            Val::new(65.0, -125.0, 11),
+            Val::new(62.5, -122.5, 12),
         ];
-        let (distance2, _results2) = clusters::Cluster::calc(2, 3, &values);
-        let (distance4, _results4) = clusters::Cluster::calc(4, 3, &values);
-        assert!(distance4 < distance2);
+
+        let mut correct_clusters = 0;
+        for j in 0..=100 {
+            let results = clusters::Cluster::calc(4, 3, &values);
+            let mut correct_assignment = 0;
+            for i in 1..=12 {
+                if let Some((lat, lon)) = results.get(&i) {
+                    if let Some((lat2, lon2)) = results.get(&(i + 1)) {
+                        if i.eq(&3) || i.eq(&6) || i.eq(&9) {
+                            if lat.ne(&lat2) && lon.ne(&lon2) {
+                                correct_assignment += 1;
+                            }
+                        } else if lat.eq(&lat2) && lon.eq(&lon2) {
+                            correct_assignment += 1;
+                        }
+                    }
+                }
+            }
+            if correct_assignment > 9 {
+                correct_clusters += 1;
+            }
+        }
+        println!("Correct clusters: {}", correct_clusters);
+        assert!(correct_clusters>60);
     }
 }
