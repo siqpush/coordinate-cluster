@@ -3,12 +3,6 @@ name = "kmeans"
 version = "0.1.0"
 edition = "2021"
 
-[profile.dev]
-opt-level = 3
-lto = true
-codegen-units = 1
-debug = true
-
 [profile.release]
 opt-level = 3
 lto = true
@@ -16,9 +10,8 @@ codegen-units = 1
 debug = true
 
 [profile.test]
-opt-level = 3
-lto = true
-codegen-units = 1
+opt-level = 1
+debug = true
 
 
 [dependencies]

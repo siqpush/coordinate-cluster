@@ -2,13 +2,10 @@ use std::hash::Hash;
 use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
-const RAD_PER_DEG: f32 = 0.017_453_292;
-const RAD_PER_DEG_F64: f64 = 0.017_453_292_519_943_295;
-const RAD_PER_DEG_F32: f32 = 0.017_453_292_5;
-const MILES_F64: f64 = 3960.0;
-const KILOMETERS_F64: f64 = 6371.0;
 
-const KILOMETERS: f32 = 6371.0;
+const RAD_PER_DEG_F64: f64 = 0.017_453_292_519_943_295;
+const RAD_PER_DEG_F32: f32 = 0.017_453_292;
+const MILES_F64: f64 = 3960.0;
 const MILES_F32: f32 = 3960.0;
 
 
@@ -25,30 +22,21 @@ const MILES_F32: f32 = 3960.0;
 ///        pub sub_region_id: u32,
 ///    }
 ///     
-///    impl UserDataType<f32, u32> for SomeUserData {
-///        fn get_coords<T>(&self) -> (T, T) {
+///    impl UserDataType<f32> for SomeUserData {
+///        fn get_coords(&self) -> (f32, f32) {
 ///            (self.latitude, self.longitude)
 ///        }
-///
-///        fn get_unique_identifier(&self) -> (u32, u32) {
-///                (self.region_id, self.sub_region_id)
-///         }
 ///   }
 ///
 ///
 ///
 /// ```
 /// 
-/// [Location] is really a link to a unique identifier K and some type T that
-/// can be made into a tuple of ([T], [T]) which is the latitude and longitude
-/// 
-/// [T] must implement [LatLngType] and [K] must implement [Hash] and [Eq]
-pub trait UserDataType<T, K>
+/// [T] must implement [LatLngType]
+pub trait UserDataType<T>
 where T: LatLngType,
-        K: Hash + Eq
 {
-    fn get_coords<T>(&self) -> (T, T);
-    fn get_unique_identifier(&self) -> K;
+    fn get_coords(&self) -> (T, T);
 }
 
 /// stores the generic bounds required for generic K throughout

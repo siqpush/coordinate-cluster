@@ -6,27 +6,27 @@ use crate::location::{LatLngType, UserDataType};
 /// 
 /// [DATAPOINT] must implement [UserDataType] and [T] must implement [LatLngType]
 #[derive(Clone, Debug)]
-pub struct Node<T, K, DATAPOINT>
-where T: LatLngType, DATAPOINT: UserDataType<T, K>, K: Hash + Eq
+pub struct Node<T, DATAPOINT>
+where T: LatLngType, DATAPOINT: UserDataType<T> + Clone
 {
     pub location: (T, T),
     pub children: Vec<DATAPOINT>,
     pub total_distance: T,
 }
 
-impl<T, K, DATAPOINT> Node<T, K, DATAPOINT>
-where T: LatLngType, DATAPOINT: UserDataType<T, K>, K: Hash + Eq
+impl<T, DATAPOINT> Node<T, DATAPOINT>
+where T: LatLngType, DATAPOINT: UserDataType<T> + Clone
 {
-    pub fn new(lat: T, lng: T) -> Self {
+    pub fn new(lat: T, lng: T, children: Vec<DATAPOINT>) -> Self {
         Self {
             location: (lat, lng),
-            children: vec![],
+            children,
             total_distance: T::default(),
         }
     }
 
-    pub fn push_child(&mut self, data_point: DATAPOINT) {
-        self.children.push(data_point);
+    pub fn push_child(&mut self, data_point: &DATAPOINT) {
+        self.children.push(data_point.clone());
     }
 
     pub fn calculate_new_centroid(&mut self) -> (T, T) {
@@ -45,5 +45,16 @@ where T: LatLngType, DATAPOINT: UserDataType<T, K>, K: Hash + Eq
         let mean_lon = sum_lon / count;
 
         (mean_lat, mean_lon)
+    }
+
+    pub fn has_only_unique_pairs(&self) -> bool {
+        for i in self.children.iter() {
+            for j in self.children.iter() {
+                if i.get_coords() != j.get_coords() {
+                    return false;
+                }
+            }
+        }
+        true
     }
 }

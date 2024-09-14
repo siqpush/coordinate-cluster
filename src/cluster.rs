@@ -2,30 +2,33 @@ use std::hash::Hash;
 use crate::location::{LatLngType, UserDataType};
 use crate::nodes::Node;
 
-pub struct Cluster<T, K, DATAPOINT>{
-    pub nodes: Vec<Node<T, K, DATAPOINT>>,
+pub struct Cluster<T, DATAPOINT>
+where T: LatLngType, DATAPOINT: UserDataType<T> + Clone
+{
+    pub nodes: Vec<Node<T, DATAPOINT>>,
 }
 
-impl<T, K, DATAPOINT> Cluster<T, K, DATAPOINT>
-where T: LatLngType, DATAPOINT: UserDataType<T, K>, K: Hash + Eq
+impl<T, DATAPOINT> Cluster<T, DATAPOINT>
+where T: LatLngType, DATAPOINT: UserDataType<T> + Clone
 {
 
-    fn new(k: usize, data_points: Vec<DATAPOINT>, assigned_nodes: &Option<Vec<(T, T)>>) -> Self {
+    pub fn new(k: usize, data_points: &[DATAPOINT], centroids: &[(T, T)]) -> Self {
         let mut cluster = Self {
             nodes: vec![],
         };
-        if let Some(nodes) = assigned_nodes {
-            cluster.assign_nodes(nodes.clone());
+        if !centroids.is_empty() {
+            cluster.assign_centroids_to_nodes(centroids);
         } else {
-            cluster.assign_locations_to_randomly_chosen_node(k, data_points);
+            cluster.initialize_first_cluster(k, data_points);
         }
 
         // Assign the reports to the closest node
-        for (i, report) in data_points.iter().enumerate() {
+        for data_point in data_points.iter(){
+            
             // determine the closest node to the report
-            let closest_node_and_distance_tuple = cluster.closest_node(&data_points[i]);
-
-            cluster.nodes[i].push_child(data_points[i]);
+            let closest_node_and_distance_tuple = cluster.assign_data_point_to_closest_node(data_point);
+            cluster.nodes[closest_node_and_distance_tuple.0].push_child(data_point);
+            cluster.nodes[closest_node_and_distance_tuple.0].total_distance += closest_node_and_distance_tuple.1;
         }
         cluster
     }
@@ -33,81 +36,56 @@ where T: LatLngType, DATAPOINT: UserDataType<T, K>, K: Hash + Eq
 
     /// for one location determine the closest node (k node) to the location
     /// return the index of the node and the distance to the node
-    pub fn closest_node(&self, report: &Val<T, K>) -> (usize, T) {
+    pub fn assign_data_point_to_closest_node(&self, data_point: &DATAPOINT) -> (usize, T) {
+        
         // tuple of k node and the distance to the node
         let mut min_loc: (usize, T) = (usize::default(), T::max_value());
 
         // if the distance to the node is less than the current minimum distance, update the minimum distance
-        for (k, node) in self.nodes.iter() {
-            let dist = T::haversine_miles(
-                &(node.get_coords()),
-                &(report.latitude, report.longitude),
+        for (k, node) in self.nodes.iter().enumerate() {
+            let dist = T::haversine(
+                &node.location,
+                &data_point.get_coords(),
             );
             if dist < min_loc.1 {
-                min_loc = (*k, dist);
+                min_loc = (k, dist);
             }
         }
         min_loc
     }
-
-    fn assign_nodes(&mut self, nodes: Vec<(T, T)>)
-    where Self: Into<(T, T)>
+    
+    /// if provided with centroid values assign the lat lngs to the clusters nodes
+    fn assign_centroids_to_nodes(&mut self, centroids: &[(T, T)])
     {
-        for (i, node) in nodes.iter().enumerate() {
-            self.nodes.insert(i, Node::new(Some(node.0), Some(node.1)));
+        for centroid in centroids {
+            self.nodes.push(Node::new(centroid.0, centroid.1, vec![]));
         }
     }
 
     /// Assign k nodes to the cluster
-    pub fn assign_locations_to_randomly_chosen_node(&mut self, k: usize, locations: &[Val<T, K>]) {
-        // Randomly select k nodes from the reports
-        let mut rng = fastrand::Rng::new();
-        let mut selected_indices = vec![];
-        for _ in 0..k {
-            selected_indices.push(rng.usize(..locations.len()));
-        }
-
-        // Assign the selected nodes to the cluster
-        for (i, &index) in selected_indices.iter().enumerate() {
-            c.nodes.insert(
-                i,
-                Node::new(
-                    Some(reports[index].latitude),
-                    Some(reports[index].longitude),
-                ),
-            );
-        }
-    }
-
-    /// take a list of values and return unique id and the location of the centroid
-    pub fn calc(k: usize, r: usize, values: &[Val<T>]) -> (T, Vec<(T, T)>) {
-        let mut centroids = None;
-        for i in 0..r {
-            let mut cluster = Self::new(k, values, &centroids);
-            // Clear the centroids since we already defined them and we dont want the next round to push onto the existing centroids
-            if let Some(ref mut centroids) = centroids {
-                centroids.clear();
-            } else {
-                centroids = Some(vec![]);
+fn initialize_first_cluster(&mut self, k: usize, data_points: &[DATAPOINT]) {
+        let mut min_lat = None; 
+        let mut max_lat= None;
+        let mut min_lon= None;
+        let mut max_lon= None;
+        for data_point in data_points {
+            let data_point_coords = data_point.get_coords();
+            if min_lat.map(|ml| data_point_coords.0 > ml).unwrap_or(true) {
+                min_lat = Some(data_point_coords.0);
             }
-            let mut total_distance = T::default();
-            for (_, node) in cluster.nodes.iter_mut() {
-                for report in node.children.iter() {
-                    node.total_distance += T::haversine_miles(
-                        &(node.location.latitude, node.location.longitude),
-                        &(report.latitude, report.longitude),
-                    );
-                }
-                total_distance += node.total_distance;
-                if let Some(ref mut centroids) = centroids {
-                    let centroid = node.calculate_new_centroid();
-                    centroids.push(centroid);
-                }
+            if max_lat.map(|ml| data_point_coords.0 < ml).unwrap_or(true) {
+                max_lat = Some(data_point_coords.0);
             }
-            if i.eq(&(r - 1)) {
-                return (total_distance, centroids.unwrap());
+            if min_lon.map(|ml| data_point_coords.1 > ml).unwrap_or(true) {
+                min_lon = Some(data_point_coords.1);
             }
+            if max_lon.map(|ml| data_point_coords.1 < ml).unwrap_or(true) {
+                max_lon = Some(data_point_coords.1);
+            }
+        };
+        
+        for _ in 0..=k {
+            self.nodes.push(Node::new(T::rand(min_lat, max_lat),T::rand(min_lon, max_lon), vec![]));
         }
-        unreachable!("Failed to calculate centroids")
     }
 }
