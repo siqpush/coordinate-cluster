@@ -1,19 +1,23 @@
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Val<T> {
+pub struct Val<T, K> {
     pub latitude: T,
     pub longitude: T,
-    pub id: i32,
+    pub unique_identifier: K,
 }
 
-impl<T> Val<T>
+impl<T, K> Val<T, K>
 where
     T: Copy + std::fmt::Debug,
 {
-    pub fn new(lat: T, lon: T) -> Self {
+    pub fn new(lat: T, lon: T, unique_identifier: K) -> Self {
         Self {
             latitude: lat,
             longitude: lon,
-            id: 0,
+            unique_identifier,
         }
+    }
+    
+    pub fn get_coords(&self) -> (T, T) {
+        (self.latitude, self.longitude)
     }
 }

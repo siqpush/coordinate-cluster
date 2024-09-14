@@ -28,19 +28,4 @@ pub fn haversine_f32(start: &(f32, f32), end: &(f32, f32), units: Units) -> f32 
     }
 }
 
-pub fn haversine_f64(start: &(f64, f64), end: &(f64, f64), units: Units) -> f64 {
-    let b = |a: &f64| 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
 
-    let d_lat = (end.0 - start.0) * RAD_PER_DEG_F64;
-    let d_lon = (end.1 - start.1) * RAD_PER_DEG_F64;
-    let lat1 = (start.0) * RAD_PER_DEG_F64;
-    let lat2 = (end.0) * RAD_PER_DEG_F64;
-
-    let a = ((d_lat / 2.0).sin()) * ((d_lat / 2.0).sin())
-        + ((d_lon / 2.0).sin()) * ((d_lon / 2.0).sin()) * (lat1.cos()) * (lat2.cos());
-
-    match units {
-        Units::Miles => b(&a) * MILES_F64,
-        Units::Kilometers => b(&a) * KILOMETERS_F64,
-    }
-}
