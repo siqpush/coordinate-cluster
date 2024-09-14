@@ -1,20 +1,17 @@
-use std::fmt::Debug;
 use crate::cluster::Cluster;
 use crate::location::{LatLngType, UserDataType};
-pub mod nodes;
-pub mod location;
+use std::fmt::Debug;
 mod cluster;
-
+pub mod location;
+pub mod nodes;
 
 pub fn min_max<T: LatLngType>(centroids: &[(T, T)]) -> Option<((T, T), (T, T))> {
-    centroids.iter().fold(None, |acc, &(lat, lng)| {
-        match acc {
-            None => Some(((lat, lat), (lng, lng))),
-            Some(((lat_min, lat_max), (lng_min, lng_max))) => Some((
-                (lat_min.min(lat), lat_max.max(lat)),
-                (lng_min.min(lng), lng_max.max(lng))
-            )),
-        }
+    centroids.iter().fold(None, |acc, &(lat, lng)| match acc {
+        None => Some(((lat, lat), (lng, lng))),
+        Some(((lat_min, lat_max), (lng_min, lng_max))) => Some((
+            (lat_min.min(lat), lat_max.max(lat)),
+            (lng_min.min(lng), lng_max.max(lng)),
+        )),
     })
 }
 
@@ -23,9 +20,7 @@ where
     DATAPOINT: UserDataType<T> + Clone + Debug,
     T: LatLngType,
 {
-
     let mut centroids = vec![];
-
 
     for round_trip in 0..r {
         let mut cluster = Cluster::new(k, data_points, &centroids);
@@ -33,36 +28,29 @@ where
         centroids.truncate(0);
         for cluster_node_index in 0..k {
             let node = &mut cluster.nodes[cluster_node_index];
-            
+
             if !node.children.is_empty() {
-                centroids.push( node.calculate_new_centroid());
-            }  else {
+                centroids.push(node.calculate_new_centroid());
+            } else {
                 count_of_empty_nodes += 1;
             }
         }
         // if its out last round trip and we have empty nodes, no need filling them
         if round_trip.lt(&(r - 1)) && count_of_empty_nodes > 0 {
-            let (lat_lng_min_max) = min_max(&centroids);
+            let lat_lng_min_max = min_max(&centroids);
             while centroids.len() < k {
                 if lat_lng_min_max.is_none() {
-                    centroids.push(
-                        (
-                            T::rand(None, None)
-                            , T::rand(None, None)
-                        )
-                    );
+                    centroids.push((T::rand(None, None), T::rand(None, None)));
                 } else {
-                    let ((lat_min, lat_max), (lng_min, lng_max)) = unsafe{lat_lng_min_max.unwrap_unchecked()};
-                    centroids.push(
-                        (
-                            T::rand(Some(lat_min), Some(lat_max))
-                            , T::rand(Some(lng_min), Some(lng_max))
-                        )
-                    );
+                    let ((lat_min, lat_max), (lng_min, lng_max)) =
+                        unsafe { lat_lng_min_max.unwrap_unchecked() };
+                    centroids.push((
+                        T::rand(Some(lat_min), Some(lat_max)),
+                        T::rand(Some(lng_min), Some(lng_max)),
+                    ));
                 }
             }
         }
-        
         if round_trip.eq(&(r - 1)) {
             return cluster;
         }
@@ -70,14 +58,16 @@ where
     unreachable!("Failed to calculate centroids")
 }
 
+
 #[cfg(test)]
+#[allow(unused_variables)]
 mod tests {
 
     /// sample data for testing
+    #[allow(dead_code)]
     mod sample_data {
         use crate::location::UserDataType;
-
-        #[allow(unused_variables)]
+        
         #[derive(Clone, Debug)]
         pub struct ExampleDataPointStructF64 {
             pub lat: f64,
@@ -86,7 +76,7 @@ mod tests {
             pub sub_region_id: u8,
         }
 
-        #[allow(unused_variables)]
+        
         #[derive(Clone, Debug)]
         pub struct ExampleDataPointStructF32 {
             pub lat: f32,
@@ -264,8 +254,8 @@ mod tests {
             region_id: 10,
             sub_region_id: 1,
         };
-        
-        pub const DATASET_F64: [ExampleDataPointStructF64;52] = [
+
+        pub const DATASET_F64: [ExampleDataPointStructF64; 52] = [
             RIO_F64,
             NYC_F64,
             LONDON_F64,
@@ -319,7 +309,7 @@ mod tests {
             TOKYO_F64,
             SYDNEY_F64,
         ];
-        
+
         pub const DATASET_F32: [ExampleDataPointStructF32; 52] = [
             RIO_F32,
             NYC_F32,
@@ -380,25 +370,31 @@ mod tests {
     fn test_f64_data() {
         let cluster1 = super::calc(5, 1, &sample_data::DATASET_F64);
         let cluster2 = super::calc(10, 10, &sample_data::DATASET_F64);
-        let total_distance1 = cluster1.nodes.iter().fold(0.0, |acc, node| node.total_distance.abs());
-        let total_distance2 = cluster2.nodes.iter().fold(0.0, |acc, node| node.total_distance.abs());
-        println!("total_distance1: {}", total_distance1);
-        println!("total_distance2: {}", total_distance2);
+        let total_distance1 = cluster1
+            .nodes
+            .iter()
+            .fold(0.0, |acc, node| node.total_distance.abs());
+        let total_distance2 = cluster2
+            .nodes
+            .iter()
+            .fold(0.0, |acc, node| node.total_distance.abs());
         assert!(total_distance1 >= total_distance2);
     }
 
     #[test]
     fn test_f32_data() {
-
         for _ in 0..10 {
             let cluster1 = super::calc(5, 5, &sample_data::DATASET_F32);
             let cluster2 = super::calc(10, 10, &sample_data::DATASET_F32);
-            let total_distance1 = cluster1.nodes.iter().fold(0.0, |acc, node| acc + node.total_distance.abs());
-            let total_distance2 = cluster2.nodes.iter().fold(0.0, |acc, node| acc + node.total_distance.abs());
-            println!("total_distance1: {}", total_distance1);
-            println!("total_distance2: {}", total_distance2);
-            assert!(total_distance1 >= total_distance2);            
+            let total_distance1 = cluster1
+                .nodes
+                .iter()
+                .fold(0.0, |acc, node| acc + node.total_distance.abs());
+            let total_distance2 = cluster2
+                .nodes
+                .iter()
+                .fold(0.0, |acc, node| acc + node.total_distance.abs());
+            assert!(total_distance1 >= total_distance2);
         }
     }
-    
 }

@@ -1,16 +1,13 @@
-use std::hash::Hash;
 use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
-
 
 const RAD_PER_DEG_F64: f64 = 0.017_453_292_519_943_295;
 const RAD_PER_DEG_F32: f32 = 0.017_453_292;
 const MILES_F64: f64 = 3960.0;
 const MILES_F32: f32 = 3960.0;
 
-
 /// a trait that is required for user data to implement
-/// 
+///
 /// Example:
 /// ```
 /// use kmeans::location::UserDataType;
@@ -31,27 +28,35 @@ const MILES_F32: f32 = 3960.0;
 ///
 ///
 /// ```
-/// 
+///
 /// [T] must implement [LatLngType]
 pub trait UserDataType<T>
-where T: LatLngType,
+where
+    T: LatLngType,
 {
     fn get_coords(&self) -> (T, T);
 }
 
 /// stores the generic bounds required for generic K throughout
 pub trait LatLngType:
-Copy
-+ Default
-+ Debug
-+ PartialEq
-+ PartialOrd
-+ AddAssign
-+ Add<Output = Self>
-+ Sub<Output = Self>
-+ Mul<Output = Self>
-+ Div<Output = Self>
+    Copy
+    + Default
+    + Debug
+    + PartialEq
+    + PartialOrd
+    + AddAssign
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
 {
+    fn abs(&self) -> Self {
+        if *self < Self::default() {
+            *self * Self::from_f32(-1.0)
+        } else {
+            *self
+        }
+    }
     fn to_lat_lng(&self) -> (Self, Self) {
         (*self, *self)
     }
@@ -120,7 +125,7 @@ impl LatLngType for f32 {
 
         let a = ((d_lat / 2.0).sin()) * ((d_lat / 2.0).sin())
             + ((d_lon / 2.0).sin()) * ((d_lon / 2.0).sin()) * (lat1.cos()) * (lat2.cos());
-        
+
         b(&a) * MILES_F32
     }
 }
@@ -179,5 +184,4 @@ impl LatLngType for f64 {
 
         b(&a) * MILES_F64
     }
-
 }

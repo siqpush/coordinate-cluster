@@ -1,13 +1,14 @@
-use std::hash::Hash;
 use crate::location::{LatLngType, UserDataType};
 
 /// a node holds a centroid location and a list of user provided data points
 /// it also marks the total distance of the children to the centroid
-/// 
+///
 /// [DATAPOINT] must implement [UserDataType] and [T] must implement [LatLngType]
 #[derive(Clone, Debug)]
 pub struct Node<T, DATAPOINT>
-where T: LatLngType, DATAPOINT: UserDataType<T> + Clone
+where
+    T: LatLngType,
+    DATAPOINT: UserDataType<T> + Clone,
 {
     pub location: (T, T),
     pub children: Vec<DATAPOINT>,
@@ -15,7 +16,9 @@ where T: LatLngType, DATAPOINT: UserDataType<T> + Clone
 }
 
 impl<T, DATAPOINT> Node<T, DATAPOINT>
-where T: LatLngType, DATAPOINT: UserDataType<T> + Clone
+where
+    T: LatLngType,
+    DATAPOINT: UserDataType<T> + Clone,
 {
     pub fn new(lat: T, lng: T, children: Vec<DATAPOINT>) -> Self {
         Self {
@@ -30,14 +33,10 @@ where T: LatLngType, DATAPOINT: UserDataType<T> + Clone
     }
 
     pub fn calculate_new_centroid(&mut self) -> (T, T) {
-        let (sum_lat, sum_lon) = self
-            .children
-            .iter()
-            .map(|child| child.get_coords())
-            .fold(
-                (T::from_usize(0), T::from_usize(0)),
-                |(acc_lat, acc_lon), (lat, lon)| (acc_lat + lat, acc_lon + lon),
-            );
+        let (sum_lat, sum_lon) = self.children.iter().map(|child| child.get_coords()).fold(
+            (T::from_usize(0), T::from_usize(0)),
+            |(acc_lat, acc_lon), (lat, lon)| (acc_lat + lat, acc_lon + lon),
+        );
 
         let count = T::from_usize(self.children.len());
 
