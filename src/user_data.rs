@@ -10,7 +10,7 @@ const MILES_F32: f32 = 3960.0;
 ///
 /// Example:
 /// ```
-/// use kmeans::location::UserDataType;
+/// use kmeans::user_data::UserDataType;
 ///
 /// pub struct SomeUserData {
 ///        pub latitude: f32,

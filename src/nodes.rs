@@ -1,4 +1,4 @@
-use crate::location::{LatLngType, UserDataType};
+use crate::user_data::{LatLngType, UserDataType};
 
 /// a node holds a centroid location and a list of user provided data points
 /// it also marks the total distance of the children to the centroid

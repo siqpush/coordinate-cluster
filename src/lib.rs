@@ -1,8 +1,8 @@
 use crate::cluster::Cluster;
-use crate::location::{LatLngType, UserDataType};
+use crate::user_data::{LatLngType, UserDataType};
 use std::fmt::Debug;
 mod cluster;
-pub mod location;
+pub mod user_data;
 pub mod nodes;
 
 pub fn min_max<T: LatLngType>(centroids: &[(T, T)]) -> Option<((T, T), (T, T))> {
@@ -66,7 +66,7 @@ mod tests {
     /// sample data for testing
     #[allow(dead_code)]
     mod sample_data {
-        use crate::location::UserDataType;
+        use crate::user_data::UserDataType;
         
         #[derive(Clone, Debug)]
         pub struct ExampleDataPointStructF64 {
