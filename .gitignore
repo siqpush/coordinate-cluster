@@ -2,3 +2,4 @@
 *.txt
 *.csv
 flamegraph.svg
+.idea

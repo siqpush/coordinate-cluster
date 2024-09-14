@@ -1,23 +1,18 @@
 [package]
-name = "coordinate-cluster"
+name = "kmeans"
 version = "0.1.0"
 edition = "2021"
-
-[profile.dev]
-opt-level = 3
-lto = true
-codegen-units = 1
 
 [profile.release]
 opt-level = 3
 lto = true
 codegen-units = 1
+debug = true
 
 [profile.test]
-opt-level = 3
-lto = true
-codegen-units = 1
+opt-level = 1
 debug = true
+
 
 [dependencies]
 chrono = { version = "0.4.38", features = ["serde"] }
