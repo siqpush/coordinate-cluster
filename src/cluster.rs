@@ -1,5 +1,5 @@
-use crate::user_data::{LatLngType, UserDataType};
 use crate::nodes::Node;
+use crate::user_data::{LatLngType, UserDataType};
 
 pub struct Cluster<T, DATAPOINT>
 where

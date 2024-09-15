@@ -2,8 +2,8 @@ use crate::cluster::Cluster;
 use crate::user_data::{LatLngType, UserDataType};
 use std::fmt::Debug;
 mod cluster;
-pub mod user_data;
 pub mod nodes;
+pub mod user_data;
 
 pub fn min_max<T: LatLngType>(centroids: &[(T, T)]) -> Option<((T, T), (T, T))> {
     centroids.iter().fold(None, |acc, &(lat, lng)| match acc {
@@ -58,7 +58,6 @@ where
     unreachable!("Failed to calculate centroids")
 }
 
-
 #[cfg(test)]
 #[allow(unused_variables)]
 mod tests {
@@ -67,7 +66,7 @@ mod tests {
     #[allow(dead_code)]
     mod sample_data {
         use crate::user_data::UserDataType;
-        
+
         #[derive(Clone, Debug)]
         pub struct ExampleDataPointStructF64 {
             pub lat: f64,
@@ -76,7 +75,6 @@ mod tests {
             pub sub_region_id: u8,
         }
 
-        
         #[derive(Clone, Debug)]
         pub struct ExampleDataPointStructF32 {
             pub lat: f32,

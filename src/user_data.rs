@@ -1,6 +1,6 @@
+use libm::{atan2, atan2f, cos, cosf, sin, sinf, sqrt, sqrtf};
 use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
-use libm::{atan2, atan2f, cos, cosf, sin, sinf, sqrt, sqrtf};
 const RAD_PER_DEG_F64: f64 = 0.017_453_292_519_943_295;
 const RAD_PER_DEG_F32: f32 = 0.017_453_292;
 const MILES_F64: f64 = 3960.0;
