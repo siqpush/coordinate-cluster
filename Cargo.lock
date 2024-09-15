@@ -153,6 +153,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "coordinate-cluster"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "csv",
+ "fastrand",
+ "lazy_static",
+ "libm",
+ "once_cell",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+]
+
+[[package]]
 name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -272,20 +287,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kmeans"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "csv",
- "fastrand",
- "lazy_static",
- "once_cell",
- "rust_decimal",
- "rust_decimal_macros",
- "serde",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -296,6 +297,12 @@ name = "libc"
 version = "0.2.158"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8adc4bb1803a324070e64a98ae98f38934d91957a99cfb3a43dcbc01bc56439"
+
+[[package]]
+name = "libm"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
 
 [[package]]
 name = "log"

@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
-
+use libm::{atan2, atan2f, cos, cosf, sin, sinf, sqrt, sqrtf};
 const RAD_PER_DEG_F64: f64 = 0.017_453_292_519_943_295;
 const RAD_PER_DEG_F32: f32 = 0.017_453_292;
 const MILES_F64: f64 = 3960.0;
@@ -116,15 +116,15 @@ impl LatLngType for f32 {
         f32::MAX
     }
     fn haversine(coord1: &(Self, Self), coord2: &(Self, Self)) -> Self {
-        let b = |a: &Self| 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
+        let b = |a: &Self| 2.0 * atan2f(sqrtf(*a), sqrtf(1.0 - *a));
 
         let d_lat = (coord2.0 - coord1.0) * RAD_PER_DEG_F32;
         let d_lon = (coord2.1 - coord1.1) * RAD_PER_DEG_F32;
         let lat1 = (coord1.0) * RAD_PER_DEG_F32;
         let lat2 = (coord2.0) * RAD_PER_DEG_F32;
 
-        let a = ((d_lat / 2.0).sin()) * ((d_lat / 2.0).sin())
-            + ((d_lon / 2.0).sin()) * ((d_lon / 2.0).sin()) * (lat1.cos()) * (lat2.cos());
+        let a = sinf(d_lat / 2.0) * sinf(d_lat / 2.0)
+            + sinf(d_lon / 2.0) * sinf(d_lon / 2.0) * cosf(lat1) * cosf(lat2);
 
         b(&a) * MILES_F32
     }
@@ -172,15 +172,15 @@ impl LatLngType for f64 {
         f64::MAX
     }
     fn haversine(coord1: &(Self, Self), coord2: &(Self, Self)) -> Self {
-        let b = |a: &Self| 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
+        let b = |a: &Self| 2.0 * atan2(sqrt(*a), sqrt(1.0 - *a));
 
         let d_lat = (coord2.0 - coord1.0) * RAD_PER_DEG_F64;
         let d_lon = (coord2.1 - coord1.1) * RAD_PER_DEG_F64;
         let lat1 = (coord1.0) * RAD_PER_DEG_F64;
         let lat2 = (coord2.0) * RAD_PER_DEG_F64;
 
-        let a = ((d_lat / 2.0).sin()) * ((d_lat / 2.0).sin())
-            + ((d_lon / 2.0).sin()) * ((d_lon / 2.0).sin()) * (lat1.cos()) * (lat2.cos());
+        let a = sin(d_lat / 2.0) * sin(d_lat / 2.0)
+            + sin(d_lon / 2.0) * sin(d_lon / 2.0) * cos(lat1) * cos(lat2);
 
         b(&a) * MILES_F64
     }
